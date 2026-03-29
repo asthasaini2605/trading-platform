@@ -1,416 +1,1444 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Prediction Market Platform</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PredictX — Decentralized Prediction Markets</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b14;
+  --bg2: #0d1120;
+  --bg3: #111827;
+  --bg4: #1a2235;
+  --border: #1e2d45;
+  --border2: #243550;
+  --accent: #3b82f6;
+  --accent2: #6366f1;
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --glow: rgba(59,130,246,0.15);
+}
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-    header {
-      text-align: center;
-      color: white;
-      margin-bottom: 30px;
-    }
+/* Background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
+.app { position: relative; z-index: 1; }
 
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      background: white;
-      padding: 10px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
+/* ── HEADER ── */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  background: rgba(8,11,20,0.9);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-    .tab-btn {
-      flex: 1;
-      padding: 15px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-    }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
 
-    .tab-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
 
-    .tab-btn.active {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
+.logo span { color: var(--accent); }
 
-    .tab-content {
-      display: none;
-    }
+.header-right { display: flex; align-items: center; gap: 12px; }
 
-    .tab-content.active {
-      display: block;
-    }
+.network-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+}
 
-    .wallet-section {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
+.network-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s infinite;
+}
 
-    .wallet-info {
-      flex: 1;
-      min-width: 200px;
-    }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    .wallet-address {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 5px;
-    }
+.wallet-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 10px;
+  padding: 8px 16px;
+  color: white; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'Space Grotesk', sans-serif;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 20px;
-      margin-bottom: 20px;
-    }
+.wallet-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59,130,246,0.4); }
 
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      transition: transform 0.3s ease;
-    }
+.wallet-btn.connected {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
 
-    .card:hover {
-      transform: translateY(-5px);
-    }
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
 
-    .card h2 {
-      color: #667eea;
-      margin-bottom: 20px;
-      font-size: 1.5rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 10px;
-    }
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  border-right: 1px solid var(--border);
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg2);
+}
 
-    button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-      margin-bottom: 10px;
-      font-weight: 600;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text3);
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
 
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
+.nav-item:hover { background: var(--bg3); color: var(--text2); }
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
+.nav-item.active {
+  background: var(--bg4);
+  color: var(--accent);
+  border-color: var(--border2);
+}
 
-    .btn-outcome1 {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
+.nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
 
-    .btn-outcome2 {
-      background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
-    }
+.nav-section {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  padding: 16px 14px 6px;
+}
 
-    .btn-claim {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
 
-    .market-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      border-left: 4px solid #667eea;
-    }
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+}
 
-    .market-question {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 10px;
-    }
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+}
 
-    .market-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      margin: 15px 0;
-      font-size: 0.9rem;
-      color: #666;
-    }
+.page-title { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+.page-sub { font-size: 0.83rem; color: var(--text3); margin-top: 3px; }
 
-    .odds-display {
-      display: flex;
-      gap: 10px;
-      margin: 15px 0;
-    }
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
 
-    .odds-bar {
-      flex: 1;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
 
-    .odds-bar.outcome1 {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
+.stat-card:hover { border-color: var(--border2); }
 
-    .odds-bar.outcome2 {
-      background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
-    }
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
 
-    .status-badge {
-      display: inline-block;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: bold;
-    }
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+  font-family: 'JetBrains Mono', monospace;
+}
 
-    .status-active {
-      background: #38ef7d;
-      color: #1a1a2e;
-    }
+.stat-value.green { color: var(--green); }
+.stat-value.blue { color: var(--accent); }
+.stat-value.purple { color: var(--purple); }
+.stat-value.yellow { color: var(--yellow); }
 
-    .status-resolved {
-      background: #ee0979;
-      color: white;
-    }
+.stat-change {
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-top: 4px;
+}
 
-    .status-expired {
-      background: #ffa502;
-      color: white;
-    }
+/* ── SECTION ── */
+.section { margin-bottom: 28px; }
 
-    .profile-stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
 
-    .stat-box {
-      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-    }
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
-    .stat-value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #667eea;
-    }
+/* ── MARKET CARD ── */
+.market-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 14px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
 
-    .stat-label {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 5px;
-    }
+.market-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
 
-    input, select {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border 0.3s;
-    }
+.market-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.market-card:hover::before { opacity: 1; }
 
-    input:focus, select:focus {
-      outline: none;
-      border-color: #667eea;
-    }
+.market-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+}
 
-    #log {
-      background: #1a1a2e;
-      color: #0ff;
-      padding: 20px;
-      border-radius: 10px;
-      font-family: 'Courier New', monospace;
-      max-height: 300px;
-      overflow-y: auto;
-      line-height: 1.6;
-      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
-    }
+.market-question {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 1;
+}
 
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #999;
-    }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
 
-    .market-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
+.badge-active { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-expired { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+.badge-resolved { background: rgba(99,102,241,0.15); color: var(--purple); border: 1px solid rgba(99,102,241,0.3); }
 
-    .market-actions button {
-      margin-bottom: 0;
-    }
+.market-meta {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
 
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+.meta-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.8rem;
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+}
 
-      .profile-stats {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+.meta-icon { font-size: 0.85rem; }
+
+/* ── ODDS BAR ── */
+.odds-container { margin-bottom: 16px; }
+
+.odds-label-row {
+  display: flex; justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.odds-track {
+  height: 8px;
+  background: var(--bg4);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.odds-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--green), #34d399);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.odds-buttons {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+
+.btn-bet1, .btn-bet2 {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Space Grotesk', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+.btn-bet1 {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.3);
+  color: var(--green);
+}
+
+.btn-bet1:hover {
+  background: rgba(16,185,129,0.2);
+  border-color: var(--green);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(16,185,129,0.2);
+}
+
+.btn-bet2 {
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.3);
+  color: var(--red);
+}
+
+.btn-bet2:hover {
+  background: rgba(239,68,68,0.2);
+  border-color: var(--red);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(239,68,68,0.2);
+}
+
+.btn-bet1:disabled, .btn-bet2:disabled {
+  opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none;
+}
+
+/* User bet indicator */
+.my-bet-indicator {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: var(--accent);
+}
+
+/* ── COUNTDOWN ── */
+.countdown {
+  display: flex; gap: 8px; align-items: center;
+}
+
+.countdown-unit {
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  text-align: center;
+  min-width: 44px;
+}
+
+.countdown-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.countdown-label {
+  font-size: 0.58rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.countdown-sep { color: var(--text3); font-size: 1rem; margin-bottom: 4px; }
+
+/* ── RESOLVE BUTTONS ── */
+.resolve-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-resolve {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(139,92,246,0.3);
+  background: rgba(139,92,246,0.1);
+  color: var(--purple);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.btn-resolve:hover { background: rgba(139,92,246,0.2); border-color: var(--purple); }
+
+/* ── CLAIM BUTTON ── */
+.btn-claim {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(245,158,11,0.3);
+  background: rgba(245,158,11,0.1);
+  color: var(--yellow);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Space Grotesk', sans-serif;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn-claim:hover { background: rgba(245,158,11,0.2); border-color: var(--yellow); }
+
+/* ── CREATE MARKET FORM ── */
+.form-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 580px;
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+.form-input::placeholder { color: var(--text3); }
+
+textarea.form-input { resize: vertical; min-height: 80px; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Space Grotesk', sans-serif;
+  width: 100%;
+}
+
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(59,130,246,0.4); }
+
+/* ── LEADERBOARD ── */
+.leaderboard-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+}
+
+.leaderboard-row:hover { border-color: var(--border2); }
+
+.rank {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text3);
+  width: 24px;
+  text-align: center;
+}
+
+.rank.gold { color: #f59e0b; }
+.rank.silver { color: #94a3b8; }
+.rank.bronze { color: #b45309; }
+
+.avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.leaderboard-info { flex: 1; }
+
+.lb-address {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lb-stats { font-size: 0.75rem; color: var(--text3); margin-top: 2px; }
+
+.lb-earnings {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--green);
+  text-align: right;
+}
+
+.lb-winrate {
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* ── PROFILE ── */
+.profile-header {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.profile-avatar {
+  width: 72px; height: 72px;
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  border: 2px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.profile-name { font-size: 1.1rem; font-weight: 700; }
+.profile-addr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.profile-stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.profile-stat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-stat-label {
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ── ADMIN PANEL ── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.admin-card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ── ODDS CHART ── */
+.chart-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.chart-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.chart-title { font-size: 0.95rem; font-weight: 700; }
+
+.chart-legend {
+  display: flex; gap: 16px;
+  font-size: 0.78rem;
+  color: var(--text2);
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+canvas { width: 100% !important; }
+
+/* ── LIVE ODDS TABLE ── */
+.odds-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.odds-table th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  padding: 8px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.odds-table td {
+  padding: 12px 14px;
+  font-size: 0.84rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.odds-table tr:last-child td { border-bottom: none; }
+.odds-table tr:hover td { background: var(--bg3); }
+
+.odds-pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.odds-pill.green { background: rgba(16,185,129,0.15); color: var(--green); }
+.odds-pill.red { background: rgba(239,68,68,0.15); color: var(--red); }
+
+/* ── LOG ── */
+.log-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.log-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text3);
+  display: flex; align-items: center; gap: 6px;
+}
+
+#log {
+  background: var(--bg);
+  color: #4ade80;
+  padding: 16px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  max-height: 180px;
+  overflow-y: auto;
+  line-height: 1.8;
+}
+
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-track { background: var(--bg); }
+#log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+}
+
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5; }
+.empty-text { font-size: 0.9rem; }
+
+/* ── TOAST ── */
+.toasts {
+  position: fixed;
+  top: 80px; right: 20px;
+  z-index: 1000;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.toast {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.84rem;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 3.7s forwards;
+  max-width: 320px;
+}
+
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--red); }
+.toast.info { border-left: 3px solid var(--accent); }
+
+@keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes fadeOut { from{opacity:1} to{opacity:0;transform:translateX(100%)} }
+
+/* ── BET MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 32px;
+  width: 420px;
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+
+.modal-overlay.open .modal { transform: scale(1); }
+
+.modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+.modal-sub { font-size: 0.83rem; color: var(--text3); margin-bottom: 24px; }
+
+.amount-input-row {
+  display: flex; align-items: center;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  transition: border-color 0.2s;
+}
+
+.amount-input-row:focus-within { border-color: var(--accent); }
+
+.amount-input-row input {
+  flex: 1; background: none; border: none;
+  padding: 14px 16px; color: var(--text);
+  font-size: 1.1rem; font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; outline: none;
+}
+
+.amount-currency {
+  padding: 0 16px;
+  font-size: 0.85rem; font-weight: 700;
+  color: var(--text3);
+  border-left: 1px solid var(--border);
+}
+
+.quick-amounts {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+
+.quick-btn {
+  flex: 1; padding: 7px;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.btn-cancel {
+  padding: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text2);
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.btn-cancel:hover { border-color: var(--border2); }
+
+.btn-confirm {
+  padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 10px;
+  color: white;
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.btn-confirm:hover { box-shadow: 0 4px 20px rgba(59,130,246,0.4); }
+
+/* ── TABS inside page ── */
+.inner-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+
+.inner-tab {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text3);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.inner-tab:hover { color: var(--text2); }
+.inner-tab.active { background: var(--bg3); border-color: var(--border); color: var(--text); }
+
+/* ── MISC ── */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-2 { gap: 8px; }
+
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-yellow { color: var(--yellow); }
+.text-accent { color: var(--accent); }
+.text-muted { color: var(--text3); }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+.spinning { animation: spin 1s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── CATEGORY PILLS ── */
+.category-filter {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.cat-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text3);
+  transition: all 0.15s;
+}
+
+.cat-pill:hover { color: var(--text2); border-color: var(--border2); }
+.cat-pill.active { background: var(--bg4); border-color: var(--accent); color: var(--accent); }
+
+.market-cat-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  margin-right: 6px;
+}
+
+/* ── PROFIT ESTIMATOR ── */
+.profit-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.profit-box.visible { display: block; }
+
+.profit-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.82rem;
+  padding: 3px 0;
+}
+
+.profit-row .label { color: var(--text3); }
+.profit-row .value { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.profit-row .value.green { color: var(--green); }
+.profit-row .value.yellow { color: var(--yellow); }
+
+.profit-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+/* ── VALIDATION ── */
+.input-hint {
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-top: -14px;
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+
+.input-hint.error { color: var(--red); }
+.input-hint.success { color: var(--green); }
+
+.amount-input-row.error { border-color: var(--red) !important; }
+.amount-input-row.success { border-color: var(--green) !important; }
+
+/* ── AUTO REFRESH ── */
+.refresh-bar {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.refresh-ring {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 2s linear infinite;
+}
+
+.refresh-ring.paused { animation: none; border-top-color: var(--border); }
+
+.hidden { display: none !important; }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .profile-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-grid { grid-template-columns: 1fr; }
+}
+</style>
 </head>
-
 <body>
+<div class="app">
 
-<div class="container">
-  <header>
-    <h1>🎯 Prediction Market Platform</h1>
-    <p>Decentralized betting on future outcomes</p>
+  <!-- TOASTS -->
+  <div class="toasts" id="toasts"></div>
+
+  <!-- BET MODAL -->
+  <div class="modal-overlay" id="betModal">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">Place Bet</div>
+      <div class="modal-sub" id="modalSub">Enter amount to bet</div>
+
+      <!-- Validation hint -->
+      <div class="input-hint" id="betHint" style="display:none;margin-bottom:8px;margin-top:0"></div>
+
+      <div class="amount-input-row" id="amountInputRow">
+        <input type="number" id="betAmount" placeholder="0.00" step="0.01" min="0.001"
+          oninput="onBetAmountChange(this.value)">
+        <div class="amount-currency">ETH</div>
+      </div>
+
+      <!-- Min/Max hint -->
+      <div style="display:flex;justify-content:space-between;font-size:0.73rem;color:var(--text3);margin:-12px 0 14px;padding:0 4px;">
+        <span>Min: <span id="modalMinBet" style="color:var(--text2);font-family:monospace">0.001 ETH</span></span>
+        <span>Max: <span id="modalMaxBet" style="color:var(--text2);font-family:monospace">100 ETH</span></span>
+      </div>
+
+      <div class="quick-amounts">
+        <button class="quick-btn" onclick="setAmount('0.01')">0.01</button>
+        <button class="quick-btn" onclick="setAmount('0.05')">0.05</button>
+        <button class="quick-btn" onclick="setAmount('0.1')">0.1</button>
+        <button class="quick-btn" onclick="setAmount('0.5')">0.5</button>
+        <button class="quick-btn" onclick="setAmount('1.0')">1.0</button>
+      </div>
+
+      <!-- Profit Estimator -->
+      <div class="profit-box" id="profitBox">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:10px;">💰 Profit Estimator</div>
+        <div class="profit-row">
+          <span class="label">Your Bet</span>
+          <span class="value" id="est-bet">—</span>
+        </div>
+        <div class="profit-row">
+          <span class="label">Current Odds</span>
+          <span class="value yellow" id="est-odds">—</span>
+        </div>
+        <div class="profit-row">
+          <span class="label">Pool After Bet</span>
+          <span class="value" id="est-pool">—</span>
+        </div>
+        <div class="profit-divider"></div>
+        <div class="profit-row">
+          <span class="label" style="font-weight:700;color:var(--text2)">Potential Profit</span>
+          <span class="value green" id="est-profit" style="font-size:1rem">—</span>
+        </div>
+        <div class="profit-row">
+          <span class="label">Total Return</span>
+          <span class="value green" id="est-return">—</span>
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-confirm" id="confirmBetBtn" onclick="confirmBet()">Confirm Bet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      Predict<span>X</span>
+    </div>
+    <div class="header-right">
+      <div class="network-badge" id="networkBadge">
+        <div class="network-dot"></div>
+        Hardhat Local
+      </div>
+      <button class="wallet-btn" id="walletBtn" onclick="connect()">
+        🔗 Connect Wallet
+      </button>
+    </div>
   </header>
 
-  <div class="wallet-section">
-    <div class="wallet-info">
-      <div id="walletStatus">Not Connected</div>
-      <div class="wallet-address" id="walletAddress"></div>
-    </div>
-    <button onclick="connect()" style="width: auto;">🔗 Connect Wallet</button>
-  </div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="nav-section">Markets</div>
+      <div class="nav-item active" onclick="showPage('markets',this)" id="nav-markets">
+        <span class="nav-icon">📊</span> Active Markets
+      </div>
+      <div class="nav-item" onclick="showPage('odds',this)" id="nav-odds">
+        <span class="nav-icon">📈</span> Live Odds
+      </div>
+      <div class="nav-item" onclick="showPage('create',this)" id="nav-create">
+        <span class="nav-icon">➕</span> Create Market
+      </div>
 
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('markets')">📊 Active Markets</button>
-    <button class="tab-btn" onclick="showTab('profile')">👤 My Profile</button>
-    <button class="tab-btn" onclick="showTab('create')">➕ Create Market</button>
-    <button class="tab-btn" onclick="showTab('history')">📜 History</button>
-  </div>
+      <div class="nav-section">Account</div>
+      <div class="nav-item" onclick="showPage('profile',this)" id="nav-profile">
+        <span class="nav-icon">👤</span> My Profile
+      </div>
+      <div class="nav-item" onclick="showPage('history',this)" id="nav-history">
+        <span class="nav-icon">📜</span> History
+      </div>
+      <div class="nav-item" onclick="showPage('leaderboard',this)" id="nav-leaderboard">
+        <span class="nav-icon">🏆</span> Leaderboard
+      </div>
 
-  <!-- Active Markets Tab -->
-  <div id="marketsTab" class="tab-content active">
-    <div id="activeMarketsList"></div>
-  </div>
+      <div class="nav-section">System</div>
+      <div class="nav-item" onclick="showPage('admin',this)" id="nav-admin">
+        <span class="nav-icon">⚙️</span> Admin Panel
+      </div>
 
-  <!-- Profile Tab -->
-  <div id="profileTab" class="tab-content">
-    <div class="grid">
-      <div class="card">
-        <h2>📊 Statistics</h2>
-        <div class="profile-stats">
-          <div class="stat-box">
-            <div class="stat-value" id="totalBets">0</div>
-            <div class="stat-label">Total Bets</div>
+      <div class="sidebar-bottom">
+        <div class="log-card">
+          <div class="log-header">⬛ Live Logs</div>
+          <div id="log"></div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+      <!-- ══ ACTIVE MARKETS PAGE ══ -->
+      <div id="page-markets" class="page">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Active Markets</div>
+            <div class="page-sub">Live prediction markets open for betting</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-value" id="totalWins">0</div>
-            <div class="stat-label">Wins</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="refresh-bar">
+              <div class="refresh-ring" id="refreshRing"></div>
+              <span id="refreshLabel">Refreshing in <span id="refreshCountdown">30</span>s</span>
+            </div>
+            <button class="btn-primary" style="width:auto;padding:10px 20px;font-size:0.85rem;" onclick="showPage('create',document.getElementById('nav-create'))">+ New Market</button>
           </div>
-          <div class="stat-box">
-            <div class="stat-value" id="totalEarnings">0 ETH</div>
-            <div class="stat-label">Total Earnings</div>
+        </div>
+
+        <div class="stats-row" id="globalStats">
+          <div class="stat-card">
+            <div class="stat-label">Active Markets</div>
+            <div class="stat-value blue" id="gs-active">—</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-value" id="winRate">0%</div>
+          <div class="stat-card">
+            <div class="stat-label">Total Pool</div>
+            <div class="stat-value green" id="gs-pool">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Your Bets</div>
+            <div class="stat-value purple" id="gs-bets">—</div>
+          </div>
+          <div class="stat-card">
             <div class="stat-label">Win Rate</div>
+            <div class="stat-value yellow" id="gs-winrate">—</div>
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter" id="categoryFilter">
+          <div class="cat-pill active" onclick="filterCategory('all', this)">🌐 All</div>
+          <div class="cat-pill" onclick="filterCategory('crypto', this)">₿ Crypto</div>
+          <div class="cat-pill" onclick="filterCategory('sports', this)">⚽ Sports</div>
+          <div class="cat-pill" onclick="filterCategory('weather', this)">🌤️ Weather</div>
+          <div class="cat-pill" onclick="filterCategory('politics', this)">🏛️ Politics</div>
+          <div class="cat-pill" onclick="filterCategory('tech', this)">💻 Tech</div>
+          <div class="cat-pill" onclick="filterCategory('other', this)">🎲 Other</div>
+        </div>
+
+        <div class="section">
+          <div id="activeMarketsList">
+            <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Connect wallet to view markets</div></div>
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <h2>🎲 My Active Bets</h2>
-        <div id="myActiveBets"></div>
+      <!-- ══ LIVE ODDS PAGE ══ -->
+      <div id="page-odds" class="page hidden">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Live Odds</div>
+            <div class="page-sub">Real-time market probabilities</div>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:10px 20px;font-size:0.85rem;" onclick="loadOddsChart()">↻ Refresh</button>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">Outcome Probability by Market</div>
+            <div class="chart-legend">
+              <span><span class="legend-dot" style="background:var(--green)"></span>Outcome 1</span>
+              <span><span class="legend-dot" style="background:var(--red)"></span>Outcome 2</span>
+            </div>
+          </div>
+          <canvas id="oddsChart" height="220"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header"><div class="chart-title">All Markets — Odds Overview</div></div>
+          <table class="odds-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Pool</th>
+                <th>Outcome 1</th>
+                <th>Outcome 2</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="oddsTableBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Connect wallet to view odds</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Create Market Tab -->
-  <div id="createTab" class="tab-content">
-    <div class="card" style="max-width: 600px; margin: 0 auto;">
-      <h2>➕ Create New Market</h2>
-      <input type="text" id="newQuestion" placeholder="Enter prediction question...">
-      <input type="datetime-local" id="newDeadline">
-      <button onclick="createNewMarket()">Create Market</button>
-    </div>
-  </div>
+      <!-- ══ CREATE MARKET PAGE ══ -->
+      <div id="page-create" class="page hidden">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Create Market</div>
+            <div class="page-sub">Launch a new prediction market</div>
+          </div>
+        </div>
 
-  <!-- History Tab -->
-  <div id="historyTab" class="tab-content">
-    <div class="card">
-      <h2>📜 Resolved Markets</h2>
-      <div id="resolvedMarketsList"></div>
-    </div>
-  </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-input" id="newCategory">
+              <option value="crypto">₿ Crypto</option>
+              <option value="sports">⚽ Sports</option>
+              <option value="weather">🌤️ Weather</option>
+              <option value="politics">🏛️ Politics</option>
+              <option value="tech">💻 Tech</option>
+              <option value="other">🎲 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prediction Question</label>
+            <textarea class="form-input" id="newQuestion" placeholder="e.g. Will ETH price exceed $5000 by end of March 2026?"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Market Deadline</label>
+            <input type="datetime-local" class="form-input" id="newDeadline">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bet Limits (ETH)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <input type="number" class="form-input" id="newMinBet" placeholder="Min bet e.g. 0.01" step="0.001" min="0.001" style="margin-bottom:0">
+                <div class="input-hint">Minimum bet per user</div>
+              </div>
+              <div>
+                <input type="number" class="form-input" id="newMaxBet" placeholder="Max bet e.g. 10" step="0.1" min="0.01" style="margin-bottom:0">
+                <div class="input-hint">Maximum bet per user</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;font-size:0.82rem;color:var(--text3);">
+            💡 Anyone can bet on <strong style="color:var(--text2)">Outcome 1 (Yes)</strong> or <strong style="color:var(--text2)">Outcome 2 (No)</strong>. You (the creator) or admin can resolve the market after the deadline.
+          </div>
+          <button class="btn-primary" onclick="createNewMarket()">🚀 Deploy Market</button>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>📝 Transaction Logs</h2>
-    <div id="log"></div>
+      <!-- ══ PROFILE PAGE ══ -->
+      <div id="page-profile" class="page hidden">
+        <div class="page-header">
+          <div>
+            <div class="page-title">My Profile</div>
+            <div class="page-sub">Your betting stats and active positions</div>
+          </div>
+        </div>
+
+        <div class="profile-header" id="profileHeader">
+          <div class="profile-avatar" id="profileAvatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">👤</div>
+          <div>
+            <div class="profile-name">Anonymous Bettor</div>
+            <div class="profile-addr" id="profileAddr">Not connected</div>
+          </div>
+        </div>
+
+        <div class="profile-stats-grid">
+          <div class="profile-stat">
+            <div class="profile-stat-val blue" id="p-bets">0</div>
+            <div class="profile-stat-label">Total Bets</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-val green" id="p-wins">0</div>
+            <div class="profile-stat-label">Wins</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-val red" id="p-losses">0</div>
+            <div class="profile-stat-label">Losses</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-val yellow" id="p-winrate">0%</div>
+            <div class="profile-stat-label">Win Rate</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header"><div class="section-title">Active Bets</div></div>
+          <div id="myActiveBets">
+            <div class="empty"><div class="empty-icon">🎲</div><div class="empty-text">No active bets</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HISTORY PAGE ══ -->
+      <div id="page-history" class="page hidden">
+        <div class="page-header">
+          <div>
+            <div class="page-title">History</div>
+            <div class="page-sub">Resolved markets and past bets</div>
+          </div>
+        </div>
+        <div id="resolvedMarketsList">
+          <div class="empty"><div class="empty-icon">📜</div><div class="empty-text">No resolved markets yet</div></div>
+        </div>
+      </div>
+
+      <!-- ══ LEADERBOARD PAGE ══ -->
+      <div id="page-leaderboard" class="page hidden">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Leaderboard</div>
+            <div class="page-sub">Top performers across all markets</div>
+          </div>
+        </div>
+        <div id="leaderboardList">
+          <div class="empty"><div class="empty-icon">🏆</div><div class="empty-text">Connect wallet to view leaderboard</div></div>
+        </div>
+      </div>
+
+      <!-- ══ ADMIN PAGE ══ -->
+      <div id="page-admin" class="page hidden">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Admin Panel</div>
+            <div class="page-sub">Market management and resolution</div>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <div class="admin-card">
+            <div class="admin-card-title">⚡ Quick Resolve</div>
+            <div class="form-group">
+              <label class="form-label">Market ID</label>
+              <input type="number" class="form-input" id="adminMarketId" placeholder="e.g. 1">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <button class="btn-resolve" style="padding:12px" onclick="resolveMarketUI(document.getElementById('adminMarketId').value, 1)">✅ Outcome 1 Wins</button>
+              <button class="btn-resolve" style="padding:12px" onclick="resolveMarketUI(document.getElementById('adminMarketId').value, 2)">✅ Outcome 2 Wins</button>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-title">🕐 Fast-forward Time</div>
+            <p style="font-size:0.82rem;color:var(--text3);margin-bottom:14px;">Skip time on Hardhat local node to expire markets.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <button class="btn-resolve" style="padding:10px" onclick="fastForward(3600)">+1 Hour</button>
+              <button class="btn-resolve" style="padding:10px" onclick="fastForward(86400)">+1 Day</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header"><div class="section-title">All Markets (Admin View)</div></div>
+          <div id="adminMarketsList"></div>
+        </div>
+      </div>
+
+    </main>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Update this after deployment
-
-let provider;
-let signer;
-let contract;
-let userAddress;
+// ─────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 const abi = [
   "function createMarket(string memory _question, uint _deadline) public returns (uint)",
@@ -423,280 +1451,898 @@ const abi = [
   "function getUserPrediction(uint marketId, address user) public view returns (tuple(uint marketId, uint outcome, uint shares, uint amountBet, bool claimed))",
   "function getUserProfile(address user) public view returns (tuple(uint totalBets, uint totalWins, uint totalEarnings, uint totalLosses))",
   "function getOdds(uint marketId) public view returns (uint odds1, uint odds2)",
-  "function admin() public view returns (address)"
+  "function admin() public view returns (address)",
+  "function marketCounter() public view returns (uint)",
+  "function getMarketPlayers(uint marketId) public view returns (address[] memory)"
 ];
 
-function log(msg){
-  const timestamp = new Date().toLocaleTimeString();
-  document.getElementById("log").innerHTML += `[${timestamp}] ${msg}<br>`;
-  document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let provider, signer, contract, userAddress;
+let pendingBetMarketId = null;
+let pendingBetOutcome = null;
+let pendingBetOdds = null;
+let pendingBetPool = null;
+let oddsChartInstance = null;
+let countdownTimers = {};
+let autoRefreshTimer = null;
+let refreshCountdownTimer = null;
+let autoRefreshSeconds = 30;
+let activeCategory = 'all';
+
+// Market metadata stored locally (category + limits, since contract doesn't store these)
+const marketMeta = {};
+
+const CATEGORY_ICONS = {
+  crypto: '₿', sports: '⚽', weather: '🌤️',
+  politics: '🏛️', tech: '💻', other: '🎲'
+};
+
+// Auto-detect category from question keywords
+function detectCategory(question) {
+  const q = question.toLowerCase();
+  if (/btc|eth|bitcoin|ethereum|crypto|token|defi|nft|coin|price/.test(q)) return 'crypto';
+  if (/rain|snow|temperature|weather|forecast|sunny|storm/.test(q)) return 'weather';
+  if (/football|soccer|basketball|tennis|sports|team|match|league|win|score/.test(q)) return 'sports';
+  if (/election|president|vote|political|government|minister|party/.test(q)) return 'politics';
+  if (/ai|apple|google|microsoft|tech|software|launch|release/.test(q)) return 'tech';
+  return 'other';
 }
 
-async function connect(){
-  if (!window.ethereum){
-    alert("Please install MetaMask to use this app");
-    return;
-  }
+const AVATAR_COLORS = [
+  'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+  'linear-gradient(135deg,#10b981,#3b82f6)',
+  'linear-gradient(135deg,#f59e0b,#ef4444)',
+  'linear-gradient(135deg,#ec4899,#8b5cf6)',
+  'linear-gradient(135deg,#06b6d4,#3b82f6)',
+];
 
+const AVATAR_EMOJI = ['🦊','🐺','🦁','🐯','🦅','🐉','🦋','🌟','⚡','🔥'];
+
+function getAvatarForAddress(addr) {
+  if (!addr) return { emoji: '👤', color: AVATAR_COLORS[0] };
+  const idx = parseInt(addr.slice(2, 4), 16);
+  return {
+    emoji: AVATAR_EMOJI[idx % AVATAR_EMOJI.length],
+    color: AVATAR_COLORS[idx % AVATAR_COLORS.length]
+  };
+}
+
+// ─────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const icons = { success: '✅', error: '❌', info: '💡' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+// ─────────────────────────────────────────────
+//  LOG
+// ─────────────────────────────────────────────
+function log(msg) {
+  const t = new Date().toLocaleTimeString();
+  const el = document.getElementById('log');
+  el.innerHTML += `<span style="color:var(--text3)">[${t}]</span> ${msg}<br>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+// ─────────────────────────────────────────────
+//  CONNECT
+// ─────────────────────────────────────────────
+async function connect() {
+  if (!window.ethereum) { toast('Please install MetaMask', 'error'); return; }
   try {
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
     contract = new ethers.Contract(contractAddress, abi, signer);
-
     userAddress = await signer.getAddress();
-    document.getElementById("walletStatus").textContent = "Connected";
-    document.getElementById("walletAddress").textContent = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-    
-    log(`✅ Wallet connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`);
-    
+
+    const btn = document.getElementById('walletBtn');
+    btn.textContent = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+    btn.classList.add('connected');
+
+    // Update profile avatar
+    const av = getAvatarForAddress(userAddress);
+    document.getElementById('profileAvatar').style.background = av.color;
+    document.getElementById('profileAvatar').textContent = av.emoji;
+    document.getElementById('profileAddr').textContent = userAddress;
+
+    log(`✅ Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`);
+    toast('Wallet connected!', 'success');
+
+    window.ethereum.on('accountsChanged', async (accounts) => {
+      if (accounts.length === 0) return;
+      signer = await provider.getSigner();
+      contract = new ethers.Contract(contractAddress, abi, signer);
+      userAddress = accounts[0];
+      document.getElementById('walletBtn').textContent = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+      document.getElementById('profileAddr').textContent = userAddress;
+      const av2 = getAvatarForAddress(userAddress);
+      document.getElementById('profileAvatar').style.background = av2.color;
+      document.getElementById('profileAvatar').textContent = av2.emoji;
+      log(`🔄 Account switched to ${userAddress.slice(0,6)}...`);
+      toast('Account switched', 'info');
+      await refreshAll();
+    });
+
     await refreshAll();
+    startAutoRefresh();
   } catch(e) {
-    log("❌ Connection failed: " + e.message);
+    log('❌ ' + e.message);
+    toast('Connection failed', 'error');
   }
 }
 
-function showTab(tabName) {
-  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  
-  document.getElementById(tabName + 'Tab').classList.add('active');
-  event.target.classList.add('active');
-  
-  refreshAll();
+// ─────────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────────
+function showPage(name, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.remove('hidden');
+  if (navEl) navEl.classList.add('active');
+
+  if (name === 'odds') loadOddsChart();
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'admin') loadAdminMarkets();
 }
 
+// ─────────────────────────────────────────────
+//  REFRESH ALL
+// ─────────────────────────────────────────────
 async function refreshAll() {
   if (!contract) return;
-  
-  await loadActiveMarkets();
-  await loadProfile();
-  await loadResolvedMarkets();
+  await Promise.all([
+    loadActiveMarkets(),
+    loadProfile(),
+    loadResolvedMarkets(),
+  ]);
 }
+
+// ─────────────────────────────────────────────
+//  COUNTDOWN
+// ─────────────────────────────────────────────
+function startCountdown(deadline, elementId) {
+  if (countdownTimers[elementId]) clearInterval(countdownTimers[elementId]);
+
+  function update() {
+    const now = Date.now();
+    const diff = deadline * 1000 - now;
+    const el = document.getElementById(elementId);
+    if (!el) { clearInterval(countdownTimers[elementId]); return; }
+
+    if (diff <= 0) {
+      el.innerHTML = `<span class="badge badge-expired">EXPIRED</span>`;
+      clearInterval(countdownTimers[elementId]);
+      return;
+    }
+
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    el.innerHTML = `
+      <div class="countdown">
+        <div class="countdown-unit"><div class="countdown-num">${String(h).padStart(2,'0')}</div><div class="countdown-label">HRS</div></div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit"><div class="countdown-num">${String(m).padStart(2,'0')}</div><div class="countdown-label">MIN</div></div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit"><div class="countdown-num">${String(s).padStart(2,'0')}</div><div class="countdown-label">SEC</div></div>
+      </div>`;
+  }
+
+  update();
+  countdownTimers[elementId] = setInterval(update, 1000);
+}
+
+// ─────────────────────────────────────────────
+//  AUTO REFRESH
+// ─────────────────────────────────────────────
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  if (refreshCountdownTimer) clearInterval(refreshCountdownTimer);
+
+  let remaining = autoRefreshSeconds;
+  document.getElementById('refreshCountdown').textContent = remaining;
+
+  refreshCountdownTimer = setInterval(() => {
+    remaining--;
+    const el = document.getElementById('refreshCountdown');
+    if (el) el.textContent = remaining;
+    if (remaining <= 0) {
+      remaining = autoRefreshSeconds;
+      if (el) el.textContent = remaining;
+    }
+  }, 1000);
+
+  autoRefreshTimer = setInterval(async () => {
+    if (!contract) return;
+    log('🔄 Auto-refreshing...');
+    await refreshAll();
+  }, autoRefreshSeconds * 1000);
+}
+
+// ─────────────────────────────────────────────
+//  CATEGORY FILTER
+// ─────────────────────────────────────────────
+function filterCategory(cat, el) {
+  activeCategory = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+
+  // Show/hide market cards based on category
+  document.querySelectorAll('.market-card[data-cat]').forEach(card => {
+    const cardCat = card.getAttribute('data-cat');
+    if (cat === 'all' || cardCat === cat) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+//  PROFIT ESTIMATOR
+// ─────────────────────────────────────────────
+function onBetAmountChange(value) {
+  const hint = document.getElementById('betHint');
+  const inputRow = document.getElementById('amountInputRow');
+  const profitBox = document.getElementById('profitBox');
+  const minBet = parseFloat(document.getElementById('modalMinBet').textContent) || 0.001;
+  const maxBet = parseFloat(document.getElementById('modalMaxBet').textContent) || 100;
+
+  const amount = parseFloat(value);
+
+  // Reset
+  inputRow.classList.remove('error', 'success');
+  hint.style.display = 'none';
+  profitBox.classList.remove('visible');
+
+  if (!value || isNaN(amount)) return;
+
+  // Validation
+  if (amount < minBet) {
+    inputRow.classList.add('error');
+    hint.textContent = `⚠️ Minimum bet is ${minBet} ETH`;
+    hint.className = 'input-hint error';
+    hint.style.display = 'block';
+    document.getElementById('confirmBetBtn').disabled = true;
+    return;
+  }
+
+  if (amount > maxBet) {
+    inputRow.classList.add('error');
+    hint.textContent = `⚠️ Maximum bet is ${maxBet} ETH`;
+    hint.className = 'input-hint error';
+    hint.style.display = 'block';
+    document.getElementById('confirmBetBtn').disabled = true;
+    return;
+  }
+
+  // Valid
+  inputRow.classList.add('success');
+  hint.textContent = `✓ Valid amount`;
+  hint.className = 'input-hint success';
+  hint.style.display = 'block';
+  document.getElementById('confirmBetBtn').disabled = false;
+
+  // Profit estimate
+  if (pendingBetOdds !== null && pendingBetPool !== null) {
+    profitBox.classList.add('visible');
+
+    const oddsPercent = pendingBetOutcome === 1 ? pendingBetOdds.odds1 : pendingBetOdds.odds2;
+    const newPool = pendingBetPool + amount;
+
+    // Estimated return = (your_bet / total_pool) * new_total_pool
+    // Simplified: if you win, you get your share of total pool
+    const winShare = oddsPercent / 100;
+    const estimatedReturn = winShare > 0 ? (amount / (newPool * winShare)) * newPool : amount;
+    const cappedReturn = Math.min(estimatedReturn, newPool); // can't win more than pool
+    const profit = cappedReturn - amount;
+
+    document.getElementById('est-bet').textContent = `${amount.toFixed(4)} ETH`;
+    document.getElementById('est-odds').textContent = `${oddsPercent}%`;
+    document.getElementById('est-pool').textContent = `${newPool.toFixed(4)} ETH`;
+    document.getElementById('est-profit').textContent = `+${Math.max(0, profit).toFixed(4)} ETH`;
+    document.getElementById('est-return').textContent = `${Math.max(amount, cappedReturn).toFixed(4)} ETH`;
+  }
+}
+
 
 async function loadActiveMarkets() {
   try {
-    const marketIds = await contract.getActiveMarkets();
-    const container = document.getElementById("activeMarketsList");
-    
-    if (marketIds.length === 0) {
-      container.innerHTML = '<div class="empty-state">No active markets yet. Create one!</div>';
+    const ids = await contract.getActiveMarkets();
+    const container = document.getElementById('activeMarketsList');
+
+    document.getElementById('gs-active').textContent = ids.length;
+
+    if (ids.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No active markets. Create one!</div></div>';
+      document.getElementById('gs-pool').textContent = '0 ETH';
       return;
     }
-    
+
     container.innerHTML = '';
-    
-    for (let id of marketIds) {
+    let totalPool = 0n;
+    let myBets = 0;
+
+    const adminAddr = await contract.admin();
+    const isAdmin = adminAddr.toLowerCase() === userAddress.toLowerCase();
+
+    for (let id of ids) {
       const market = await contract.getMarket(id);
       const odds = await contract.getOdds(id);
       const userPred = await contract.getUserPrediction(id, userAddress);
-      
-      const deadline = new Date(Number(market.deadline) * 1000);
-      const isExpired = deadline < new Date();
-      const isAdmin = (await contract.admin()).toLowerCase() === userAddress.toLowerCase();
+
+      totalPool += market.totalPool;
+      if (userPred.shares > 0n) myBets++;
+
+      const deadline = Number(market.deadline);
+      const isExpired = deadline < Date.now() / 1000;
       const isCreator = market.creator.toLowerCase() === userAddress.toLowerCase();
-      
+      const countdownId = `cd-${id}`;
+
+      // Get or auto-detect category
+      const meta = marketMeta[id] || {};
+      const cat = meta.category || detectCategory(market.question);
+      const catIcon = CATEGORY_ICONS[cat] || '🎲';
+      const minBet = meta.minBet || 0.001;
+      const maxBet = meta.maxBet || 100;
+
+      const poolEth = parseFloat(ethers.formatEther(market.totalPool));
+
       const card = document.createElement('div');
       card.className = 'market-card';
+      card.setAttribute('data-cat', cat);
+
+      // Apply category filter
+      if (activeCategory !== 'all' && cat !== activeCategory) {
+        card.style.display = 'none';
+      }
+
       card.innerHTML = `
-        <div class="market-question">${market.question}</div>
-        <div class="market-info">
-          <div>💰 Pool: ${ethers.formatEther(market.totalPool)} ETH</div>
-          <div>⏰ Deadline: ${deadline.toLocaleString()}</div>
-          <div>🎯 Market #${market.id}</div>
-          <div>${isExpired ? '<span class="status-badge status-expired">EXPIRED</span>' : '<span class="status-badge status-active">ACTIVE</span>'}</div>
+        <div class="market-top">
+          <div style="flex:1">
+            <div style="margin-bottom:6px;">
+              <span class="market-cat-tag">${catIcon} ${cat.charAt(0).toUpperCase()+cat.slice(1)}</span>
+              <span style="font-size:0.72rem;color:var(--text3);font-family:monospace">Min: ${minBet} ETH · Max: ${maxBet} ETH</span>
+            </div>
+            <div class="market-question">${market.question}</div>
+          </div>
+          <span class="badge ${isExpired ? 'badge-expired' : 'badge-active'}">
+            ${isExpired ? '⏰ EXPIRED' : '🟢 LIVE'}
+          </span>
         </div>
-        <div class="odds-display">
-          <div class="odds-bar outcome1">${odds.odds1}%</div>
-          <div class="odds-bar outcome2">${odds.odds2}%</div>
+        <div class="market-meta">
+          <div class="meta-item"><span class="meta-icon">💰</span>${poolEth.toFixed(4)} ETH pool</div>
+          <div class="meta-item"><span class="meta-icon">🎯</span>Market #${market.id}</div>
         </div>
-        ${userPred.shares > 0n ? 
-          `<div style="color: #667eea; font-weight: bold; margin: 10px 0;">
-            ✅ You bet ${ethers.formatEther(userPred.amountBet)} ETH on Outcome ${userPred.outcome}
-          </div>` : 
-          `<div class="market-actions">
-            <button class="btn-outcome1" onclick="placeBet(${market.id}, 1)" ${isExpired ? 'disabled' : ''}>
-              Bet Outcome 1
-            </button>
-            <button class="btn-outcome2" onclick="placeBet(${market.id}, 2)" ${isExpired ? 'disabled' : ''}>
-              Bet Outcome 2
-            </button>
-          </div>`
+        <div style="margin-bottom:12px;" id="${countdownId}"></div>
+        <div class="odds-container">
+          <div class="odds-label-row">
+            <span>Outcome 1 (Yes) — ${odds.odds1}%</span>
+            <span>Outcome 2 (No) — ${odds.odds2}%</span>
+          </div>
+          <div class="odds-track"><div class="odds-fill" style="width:${odds.odds1}%"></div></div>
+        </div>
+        ${userPred.shares > 0n
+          ? `<div class="my-bet-indicator">✅ You bet <strong style="margin:0 4px">${ethers.formatEther(userPred.amountBet)} ETH</strong> on Outcome ${userPred.outcome}</div>`
+          : `<div class="odds-buttons">
+              <button class="btn-bet1" onclick="openBetModal(${market.id}, 1, '${market.question.replace(/'/g,"\\'")}', ${odds.odds1}, ${odds.odds2}, ${poolEth}, ${minBet}, ${maxBet})" ${isExpired ? 'disabled' : ''}>
+                ✅ Bet Outcome 1 (${odds.odds1}%)
+              </button>
+              <button class="btn-bet2" onclick="openBetModal(${market.id}, 2, '${market.question.replace(/'/g,"\\'")}', ${odds.odds1}, ${odds.odds2}, ${poolEth}, ${minBet}, ${maxBet})" ${isExpired ? 'disabled' : ''}>
+                ❌ Bet Outcome 2 (${odds.odds2}%)
+              </button>
+            </div>`
         }
-        ${(isAdmin || isCreator) && !market.resolved ? 
-          `<div class="market-actions">
-            <button class="btn-claim" onclick="resolveMarketUI(${market.id}, 1)">Resolve: Outcome 1 Wins</button>
-            <button class="btn-claim" onclick="resolveMarketUI(${market.id}, 2)">Resolve: Outcome 2 Wins</button>
-          </div>` : ''
-        }
-      `;
-      
+        ${(isAdmin || isCreator) && !market.resolved
+          ? `<div class="resolve-row">
+              <button class="btn-resolve" onclick="resolveMarketUI(${market.id}, 1)">Resolve: Outcome 1 Wins ✅</button>
+              <button class="btn-resolve" onclick="resolveMarketUI(${market.id}, 2)">Resolve: Outcome 2 Wins ✅</button>
+            </div>` : ''
+        }`;
+
       container.appendChild(card);
+      startCountdown(deadline, countdownId);
     }
+
+    document.getElementById('gs-pool').textContent = parseFloat(ethers.formatEther(totalPool)).toFixed(3) + ' ETH';
+    document.getElementById('gs-bets').textContent = myBets;
+
+    // Update win rate
+    const profile = await contract.getUserProfile(userAddress);
+    const wr = profile.totalBets > 0 ? (Number(profile.totalWins) / Number(profile.totalBets) * 100).toFixed(0) : 0;
+    document.getElementById('gs-winrate').textContent = wr + '%';
+
   } catch(e) {
-    log("❌ Error loading markets: " + e.message);
+    log('❌ Markets: ' + e.message);
   }
 }
 
+// ─────────────────────────────────────────────
+//  BET MODAL
+// ─────────────────────────────────────────────
+function openBetModal(marketId, outcome, question, odds1, odds2, poolEth, minBet, maxBet) {
+  pendingBetMarketId = marketId;
+  pendingBetOutcome = outcome;
+  pendingBetOdds = { odds1: Number(odds1), odds2: Number(odds2) };
+  pendingBetPool = parseFloat(poolEth) || 0;
+
+  document.getElementById('modalTitle').textContent = `Bet Outcome ${outcome} — Market #${marketId}`;
+  document.getElementById('modalSub').textContent = `"${question.slice(0,60)}${question.length>60?'...':''}"`;
+  document.getElementById('betAmount').value = '';
+  document.getElementById('modalMinBet').textContent = `${minBet || 0.001} ETH`;
+  document.getElementById('modalMaxBet').textContent = `${maxBet || 100} ETH`;
+
+  // Reset UI
+  document.getElementById('profitBox').classList.remove('visible');
+  document.getElementById('betHint').style.display = 'none';
+  document.getElementById('amountInputRow').classList.remove('error','success');
+  document.getElementById('confirmBetBtn').disabled = false;
+
+  document.getElementById('betModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('betModal').classList.remove('open');
+  pendingBetMarketId = null;
+  pendingBetOutcome = null;
+}
+
+function setAmount(val) {
+  document.getElementById('betAmount').value = val;
+}
+
+async function confirmBet() {
+  const amount = document.getElementById('betAmount').value;
+  if (!amount || parseFloat(amount) <= 0) { toast('Enter a valid amount', 'error'); return; }
+
+  const minBet = parseFloat(document.getElementById('modalMinBet').textContent) || 0.001;
+  const maxBet = parseFloat(document.getElementById('modalMaxBet').textContent) || 100;
+  const parsedAmount = parseFloat(amount);
+
+  if (parsedAmount < minBet) { toast(`Minimum bet is ${minBet} ETH`, 'error'); return; }
+  if (parsedAmount > maxBet) { toast(`Maximum bet is ${maxBet} ETH`, 'error'); return; }
+
+  // ✅ Save BEFORE closeModal resets them to null
+  const marketId = pendingBetMarketId;
+  const outcome = pendingBetOutcome;
+  if (!marketId || !outcome) { toast('Invalid market — please try again', 'error'); return; }
+
+  closeModal();
+  await placeBet(marketId, outcome, amount);
+}
+
+// ─────────────────────────────────────────────
+//  PLACE BET
+// ─────────────────────────────────────────────
+async function placeBet(marketId, outcome, amount) {
+  try {
+    log(`⏳ Betting ${amount} ETH on Market #${marketId}, Outcome ${outcome}...`);
+    toast(`Placing bet...`, 'info');
+    const tx = await contract.placePrediction(marketId, outcome, { value: ethers.parseEther(amount) });
+    await tx.wait();
+    log(`✅ Bet placed! ${amount} ETH on Outcome ${outcome}`);
+    toast('Bet placed successfully! 🎉', 'success');
+    await refreshAll();
+  } catch(e) {
+    log('❌ ' + (e.reason || e.message));
+    toast(e.reason || 'Bet failed', 'error');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PROFILE
+// ─────────────────────────────────────────────
 async function loadProfile() {
   try {
     const profile = await contract.getUserProfile(userAddress);
-    
-    document.getElementById("totalBets").textContent = profile.totalBets.toString();
-    document.getElementById("totalWins").textContent = profile.totalWins.toString();
-    document.getElementById("totalEarnings").textContent = ethers.formatEther(profile.totalEarnings) + " ETH";
-    
-    const winRate = profile.totalBets > 0 ? 
-      (Number(profile.totalWins) / Number(profile.totalBets) * 100).toFixed(1) : 0;
-    document.getElementById("winRate").textContent = winRate + "%";
-    
-    // Load active bets
+    const wr = profile.totalBets > 0 ? (Number(profile.totalWins) / Number(profile.totalBets) * 100).toFixed(1) : 0;
+
+    document.getElementById('p-bets').textContent = profile.totalBets.toString();
+    document.getElementById('p-wins').textContent = profile.totalWins.toString();
+    document.getElementById('p-losses').textContent = profile.totalLosses.toString();
+    document.getElementById('p-winrate').textContent = wr + '%';
+
     const activeIds = await contract.getActiveMarkets();
-    const myBetsContainer = document.getElementById("myActiveBets");
-    myBetsContainer.innerHTML = '';
-    
+    const container = document.getElementById('myActiveBets');
+    container.innerHTML = '';
     let hasBets = false;
+
     for (let id of activeIds) {
       const pred = await contract.getUserPrediction(id, userAddress);
       if (pred.shares > 0n) {
         hasBets = true;
         const market = await contract.getMarket(id);
-        
-        const betCard = document.createElement('div');
-        betCard.innerHTML = `
-          <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-            <strong>${market.question}</strong><br>
-            Outcome: ${pred.outcome} | Amount: ${ethers.formatEther(pred.amountBet)} ETH
+        const odds = await contract.getOdds(id);
+        const myOdds = pred.outcome == 1 ? odds.odds1 : odds.odds2;
+
+        const el = document.createElement('div');
+        el.className = 'market-card';
+        el.innerHTML = `
+          <div class="market-top">
+            <div class="market-question" style="font-size:0.95rem">${market.question}</div>
+            <span class="badge badge-active">LIVE</span>
           </div>
-        `;
-        myBetsContainer.appendChild(betCard);
+          <div class="market-meta">
+            <div class="meta-item">💰 ${ethers.formatEther(pred.amountBet)} ETH bet</div>
+            <div class="meta-item">🎯 Outcome ${pred.outcome}</div>
+            <div class="meta-item">📊 Current odds: ${myOdds}%</div>
+          </div>`;
+        container.appendChild(el);
       }
     }
-    
+
     if (!hasBets) {
-      myBetsContainer.innerHTML = '<div class="empty-state">No active bets</div>';
+      container.innerHTML = '<div class="empty"><div class="empty-icon">🎲</div><div class="empty-text">No active bets yet</div></div>';
     }
-    
   } catch(e) {
-    log("❌ Error loading profile: " + e.message);
+    log('❌ Profile: ' + e.message);
   }
 }
 
+// ─────────────────────────────────────────────
+//  HISTORY
+// ─────────────────────────────────────────────
 async function loadResolvedMarkets() {
   try {
-    const marketIds = await contract.getResolvedMarkets();
-    const container = document.getElementById("resolvedMarketsList");
-    
-    if (marketIds.length === 0) {
-      container.innerHTML = '<div class="empty-state">No resolved markets yet</div>';
+    const ids = await contract.getResolvedMarkets();
+    const container = document.getElementById('resolvedMarketsList');
+
+    if (ids.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">No resolved markets yet</div></div>';
       return;
     }
-    
+
     container.innerHTML = '';
-    
-    for (let id of marketIds) {
+
+    for (let id of ids) {
       const market = await contract.getMarket(id);
       const userPred = await contract.getUserPrediction(id, userAddress);
-      
+      const won = userPred.shares > 0n && userPred.outcome == market.winningOutcome;
+
       const card = document.createElement('div');
       card.className = 'market-card';
       card.innerHTML = `
-        <div class="market-question">${market.question}</div>
-        <div class="market-info">
-          <div>💰 Pool: ${ethers.formatEther(market.totalPool)} ETH</div>
-          <div>🏆 Winner: Outcome ${market.winningOutcome}</div>
-          <div><span class="status-badge status-resolved">RESOLVED</span></div>
+        <div class="market-top">
+          <div class="market-question">${market.question}</div>
+          <span class="badge badge-resolved">RESOLVED</span>
+        </div>
+        <div class="market-meta">
+          <div class="meta-item">💰 ${ethers.formatEther(market.totalPool)} ETH pool</div>
+          <div class="meta-item">🏆 Outcome ${market.winningOutcome} won</div>
+          <div class="meta-item">🎯 Market #${market.id}</div>
         </div>
         ${userPred.shares > 0n ? `
-          <div style="margin: 10px 0;">
-            Your bet: ${ethers.formatEther(userPred.amountBet)} ETH on Outcome ${userPred.outcome}
-            ${userPred.outcome === market.winningOutcome ? 
-              (userPred.claimed ? 
-                '<div style="color: green;">✅ Reward Claimed</div>' : 
-                '<button class="btn-claim" onclick="claimRewardUI(' + market.id + ')">💰 Claim Reward</button>') :
-              '<div style="color: red;">❌ Lost</div>'
-            }
-          </div>
-        ` : ''}
-      `;
-      
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:8px;">
+            <div>
+              <div style="font-size:0.82rem;color:var(--text3)">Your bet: ${ethers.formatEther(userPred.amountBet)} ETH on Outcome ${userPred.outcome}</div>
+              <div style="font-size:0.9rem;font-weight:700;margin-top:3px;color:${won ? 'var(--green)' : 'var(--red)'}">${won ? '🏆 Won!' : '❌ Lost'}</div>
+            </div>
+            ${won && !userPred.claimed ? `<button class="btn-claim" style="width:auto;margin:0" onclick="claimRewardUI(${market.id})">💰 Claim Reward</button>` : ''}
+            ${won && userPred.claimed ? `<span style="color:var(--green);font-size:0.82rem;font-weight:700">✅ Claimed</span>` : ''}
+          </div>` : ''
+        }`;
+
       container.appendChild(card);
     }
   } catch(e) {
-    log("❌ Error loading history: " + e.message);
+    log('❌ History: ' + e.message);
   }
 }
 
-async function createNewMarket() {
-  const question = document.getElementById("newQuestion").value;
-  const deadlineInput = document.getElementById("newDeadline").value;
-  
-  if (!question || !deadlineInput) {
-    alert("Please fill all fields");
-    return;
-  }
-  
-  const deadline = Math.floor(new Date(deadlineInput).getTime() / 1000);
-  
+// ─────────────────────────────────────────────
+//  LEADERBOARD
+// ─────────────────────────────────────────────
+async function loadLeaderboard() {
+  if (!contract) return;
   try {
-    log("⏳ Creating new market...");
-    const tx = await contract.createMarket(question, deadline);
-    await tx.wait();
-    log("✅ Market created successfully!");
-    
-    document.getElementById("newQuestion").value = '';
-    document.getElementById("newDeadline").value = '';
-    
-    showTab('markets');
-    refreshAll();
-  } catch(e) {
-    log("❌ Error: " + (e.reason || e.message));
-  }
-}
+    const container = document.getElementById('leaderboardList');
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;font-size:0.85rem">⏳ Loading leaderboard...</div>';
 
-async function placeBet(marketId, outcome) {
-  const amount = prompt("Enter amount in ETH:", "0.01");
-  if (!amount) return;
-  
-  try {
-    log(`⏳ Placing bet on Market #${marketId}, Outcome ${outcome}...`);
-    const tx = await contract.placePrediction(marketId, outcome, {
-      value: ethers.parseEther(amount)
+    // Collect all unique players across all markets
+    const allIds = [...(await contract.getActiveMarkets()), ...(await contract.getResolvedMarkets())];
+    const playerSet = new Set();
+
+    for (let id of allIds) {
+      const players = await contract.getMarketPlayers(id);
+      players.forEach(p => playerSet.add(p.toLowerCase()));
+    }
+
+    if (playerSet.size === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div><div class="empty-text">No players yet</div></div>';
+      return;
+    }
+
+    const entries = [];
+    for (let addr of playerSet) {
+      const profile = await contract.getUserProfile(addr);
+      entries.push({
+        addr,
+        totalBets: Number(profile.totalBets),
+        totalWins: Number(profile.totalWins),
+        totalEarnings: profile.totalEarnings,
+        winRate: profile.totalBets > 0 ? (Number(profile.totalWins) / Number(profile.totalBets) * 100).toFixed(0) : 0
+      });
+    }
+
+    entries.sort((a, b) => (b.totalEarnings > a.totalEarnings ? 1 : -1));
+
+    container.innerHTML = '';
+    const rankStyles = ['gold', 'silver', 'bronze'];
+    const rankEmoji = ['🥇', '🥈', '🥉'];
+
+    entries.forEach((entry, i) => {
+      const av = getAvatarForAddress(entry.addr);
+      const isMe = entry.addr === userAddress.toLowerCase();
+      const el = document.createElement('div');
+      el.className = 'leaderboard-row';
+      if (isMe) el.style.borderColor = 'var(--accent)';
+
+      el.innerHTML = `
+        <div class="rank ${rankStyles[i] || ''}">${i < 3 ? rankEmoji[i] : '#' + (i+1)}</div>
+        <div class="avatar" style="background:${av.color}">${av.emoji}</div>
+        <div class="leaderboard-info">
+          <div class="lb-address">${entry.addr.slice(0,6)}...${entry.addr.slice(-4)} ${isMe ? '<span style="color:var(--accent);font-size:0.72rem">(you)</span>' : ''}</div>
+          <div class="lb-stats">${entry.totalBets} bets · ${entry.totalWins} wins</div>
+        </div>
+        <div>
+          <div class="lb-earnings">+${parseFloat(ethers.formatEther(entry.totalEarnings)).toFixed(3)} ETH</div>
+          <div class="lb-winrate">${entry.winRate}% win rate</div>
+        </div>`;
+
+      container.appendChild(el);
     });
-    await tx.wait();
-    log(`✅ Bet placed successfully!`);
-    refreshAll();
+
   } catch(e) {
-    log("❌ Error: " + (e.reason || e.message));
+    log('❌ Leaderboard: ' + e.message);
   }
 }
 
-async function resolveMarketUI(marketId, outcome) {
-  if (!confirm(`Resolve market #${marketId} with Outcome ${outcome} as winner?`)) return;
-  
+// ─────────────────────────────────────────────
+//  ODDS CHART
+// ─────────────────────────────────────────────
+async function loadOddsChart() {
+  if (!contract) return;
   try {
-    log(`⏳ Resolving market #${marketId}...`);
+    const ids = await contract.getActiveMarkets();
+    const labels = [], data1 = [], data2 = [];
+
+    for (let id of ids) {
+      const market = await contract.getMarket(id);
+      const odds = await contract.getOdds(id);
+      labels.push(`#${id} ${market.question.slice(0,20)}...`);
+      data1.push(Number(odds.odds1));
+      data2.push(Number(odds.odds2));
+    }
+
+    // Update table
+    const tbody = document.getElementById('oddsTableBody');
+    if (ids.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">No active markets</td></tr>';
+    } else {
+      tbody.innerHTML = '';
+      for (let i = 0; i < ids.length; i++) {
+        const market = await contract.getMarket(ids[i]);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="font-mono text-muted">#${ids[i]}</td>
+          <td style="max-width:260px">${market.question}</td>
+          <td class="font-mono">${parseFloat(ethers.formatEther(market.totalPool)).toFixed(3)} ETH</td>
+          <td><span class="odds-pill green">${data1[i]}%</span></td>
+          <td><span class="odds-pill red">${data2[i]}%</span></td>
+          <td><span class="badge badge-active">LIVE</span></td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Draw chart
+    const ctx = document.getElementById('oddsChart').getContext('2d');
+    if (oddsChartInstance) oddsChartInstance.destroy();
+
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.borderColor = '#1e2d45';
+
+    oddsChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels.length ? labels : ['No markets yet'],
+        datasets: [
+          {
+            label: 'Outcome 1 (%)',
+            data: data1.length ? data1 : [50],
+            backgroundColor: 'rgba(16,185,129,0.7)',
+            borderColor: 'rgba(16,185,129,1)',
+            borderWidth: 1,
+            borderRadius: 6,
+          },
+          {
+            label: 'Outcome 2 (%)',
+            data: data2.length ? data2 : [50],
+            backgroundColor: 'rgba(239,68,68,0.7)',
+            borderColor: 'rgba(239,68,68,1)',
+            borderWidth: 1,
+            borderRadius: 6,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a2235',
+            borderColor: '#1e2d45',
+            borderWidth: 1,
+            callbacks: {
+              label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%`
+            }
+          }
+        },
+        scales: {
+          x: { stacked: false, grid: { color: '#1e2d45' } },
+          y: {
+            stacked: false,
+            max: 100,
+            grid: { color: '#1e2d45' },
+            ticks: { callback: v => v + '%' }
+          }
+        }
+      }
+    });
+
+  } catch(e) {
+    log('❌ Chart: ' + e.message);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ADMIN
+// ─────────────────────────────────────────────
+async function loadAdminMarkets() {
+  if (!contract) return;
+  try {
+    const activeIds = await contract.getActiveMarkets();
+    const resolvedIds = await contract.getResolvedMarkets();
+    const allIds = [...activeIds, ...resolvedIds];
+    const container = document.getElementById('adminMarketsList');
+    container.innerHTML = '';
+
+    for (let id of allIds) {
+      const market = await contract.getMarket(id);
+      const isResolved = market.resolved;
+      const el = document.createElement('div');
+      el.className = 'market-card';
+      el.innerHTML = `
+        <div class="market-top">
+          <div class="market-question" style="font-size:0.9rem">${market.question}</div>
+          <span class="badge ${isResolved ? 'badge-resolved' : 'badge-active'}">${isResolved ? 'RESOLVED' : 'LIVE'}</span>
+        </div>
+        <div class="market-meta">
+          <div class="meta-item">💰 ${ethers.formatEther(market.totalPool)} ETH</div>
+          <div class="meta-item">🎯 ID: ${market.id}</div>
+          <div class="meta-item">👤 ${market.creator.slice(0,6)}...${market.creator.slice(-4)}</div>
+        </div>
+        ${!isResolved ? `
+          <div class="resolve-row">
+            <button class="btn-resolve" onclick="resolveMarketUI(${market.id}, 1)">✅ Outcome 1 Wins</button>
+            <button class="btn-resolve" onclick="resolveMarketUI(${market.id}, 2)">✅ Outcome 2 Wins</button>
+          </div>` : `<div style="color:var(--purple);font-size:0.82rem;margin-top:8px;">🏆 Outcome ${market.winningOutcome} won</div>`
+        }`;
+      container.appendChild(el);
+    }
+
+    if (allIds.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">No markets yet</div></div>';
+    }
+  } catch(e) {
+    log('❌ Admin: ' + e.message);
+  }
+}
+
+async function fastForward(seconds) {
+  try {
+    await window.ethereum.request({
+      method: 'hardhat_mine',
+      params: [`0x${(seconds / 12).toString(16)}`]
+    });
+    toast(`⏩ Fast-forwarded ${seconds >= 86400 ? '1 day' : '1 hour'}`, 'info');
+    log(`⏩ Time fast-forwarded ${seconds}s`);
+    await refreshAll();
+  } catch(e) {
+    log('❌ FastForward: ' + e.message);
+    toast('Use hardhat console instead', 'error');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  CREATE MARKET
+// ─────────────────────────────────────────────
+async function createNewMarket() {
+  const question = document.getElementById('newQuestion').value.trim();
+  const deadlineInput = document.getElementById('newDeadline').value;
+  const category = document.getElementById('newCategory').value;
+  const minBet = parseFloat(document.getElementById('newMinBet').value) || 0.001;
+  const maxBet = parseFloat(document.getElementById('newMaxBet').value) || 100;
+
+  if (!question || !deadlineInput) { toast('Please fill all fields', 'error'); return; }
+  if (minBet >= maxBet) { toast('Min bet must be less than max bet', 'error'); return; }
+
+  const deadline = Math.floor(new Date(deadlineInput).getTime() / 1000);
+  if (deadline <= Date.now() / 1000) { toast('Deadline must be in the future', 'error'); return; }
+
+  try {
+    log('⏳ Creating market...');
+    toast('Deploying market...', 'info');
+    const tx = await contract.createMarket(question, deadline);
+    const receipt = await tx.wait();
+
+    // Get the new market ID from the contract
+    const newId = await contract.marketCounter();
+    marketMeta[Number(newId)] = { category, minBet, maxBet };
+
+    log('✅ Market created!');
+    toast('Market created! 🚀', 'success');
+    document.getElementById('newQuestion').value = '';
+    document.getElementById('newDeadline').value = '';
+    document.getElementById('newMinBet').value = '';
+    document.getElementById('newMaxBet').value = '';
+    showPage('markets', document.getElementById('nav-markets'));
+    await refreshAll();
+  } catch(e) {
+    log('❌ ' + (e.reason || e.message));
+    toast(e.reason || 'Failed to create market', 'error');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RESOLVE
+// ─────────────────────────────────────────────
+async function resolveMarketUI(marketId, outcome) {
+  if (!marketId || !outcome) { toast('Invalid market ID', 'error'); return; }
+  if (!confirm(`Resolve Market #${marketId} — Outcome ${outcome} wins?`)) return;
+  try {
+    log(`⏳ Resolving #${marketId}...`);
     const tx = await contract.resolveMarket(marketId, outcome);
     await tx.wait();
-    log("✅ Market resolved!");
-    refreshAll();
+    log('✅ Market resolved!');
+    toast('Market resolved! 🏆', 'success');
+    await refreshAll();
+    loadAdminMarkets();
   } catch(e) {
-    log("❌ Error: " + (e.reason || e.message));
+    log('❌ ' + (e.reason || e.message));
+    toast(e.reason || 'Failed to resolve', 'error');
   }
 }
 
+// ─────────────────────────────────────────────
+//  CLAIM
+// ─────────────────────────────────────────────
 async function claimRewardUI(marketId) {
   try {
-    log(`⏳ Claiming reward from market #${marketId}...`);
+    log(`⏳ Claiming reward #${marketId}...`);
+    toast('Claiming reward...', 'info');
     const tx = await contract.claimReward(marketId);
     await tx.wait();
-    log("✅ Reward claimed successfully!");
-    refreshAll();
+    log('✅ Reward claimed!');
+    toast('Reward claimed! 💰', 'success');
+    await refreshAll();
   } catch(e) {
-    log("❌ Error: " + (e.reason || e.message));
+    log('❌ ' + (e.reason || e.message));
+    toast(e.reason || 'Failed to claim', 'error');
   }
 }
 
+// Close modal on outside click
+document.getElementById('betModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 </script>
-
 </body>
 </html>

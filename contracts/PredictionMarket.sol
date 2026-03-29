@@ -28,7 +28,7 @@ contract PredictionMarket {
         uint totalBets;
         uint totalWins;
         uint totalEarnings;
-        uint totalLosses;
+        uint totalLosses;  // ✅ Now properly tracked
     }
 
     address public admin;
@@ -36,8 +36,8 @@ contract PredictionMarket {
     
     mapping(uint => Market) public markets;
     mapping(address => UserProfile) public profiles;
-    mapping(uint => mapping(address => Prediction)) public predictions; // marketId => user => prediction
-    mapping(uint => address[]) public marketPlayers; // marketId => players
+    mapping(uint => mapping(address => Prediction)) public predictions;
+    mapping(uint => address[]) public marketPlayers;
     
     uint[] public activeMarketIds;
     uint[] public resolvedMarketIds;
@@ -51,7 +51,7 @@ contract PredictionMarket {
         admin = msg.sender;
     }
 
-    // Create new market (anyone can create)
+    // ── Create Market ──────────────────────────────────────────────────────────
     function createMarket(string memory _question, uint _deadline) public returns (uint) {
         require(_deadline > block.timestamp, "Deadline must be in future");
         
@@ -77,10 +77,12 @@ contract PredictionMarket {
         return marketCounter;
     }
 
+    // ── Shares Calculation ─────────────────────────────────────────────────────
     function calculateShares(uint eth, uint totalShares) internal pure returns (uint) {
         return (eth * 1000) / (totalShares + 1000);
     }
 
+    // ── Place Prediction ───────────────────────────────────────────────────────
     function placePrediction(uint marketId, uint outcome) public payable {
         Market storage m = markets[marketId];
         
@@ -93,7 +95,7 @@ contract PredictionMarket {
 
         uint shares;
 
-        if(outcome == 1){
+        if (outcome == 1) {
             shares = calculateShares(msg.value, m.totalShares1);
             m.totalShares1 += shares;
         } else {
@@ -112,12 +114,12 @@ contract PredictionMarket {
         marketPlayers[marketId].push(msg.sender);
         m.totalPool += msg.value;
         
-        // Update user profile
         profiles[msg.sender].totalBets++;
         
         emit PredictionPlaced(marketId, msg.sender, outcome, shares, msg.value);
     }
 
+    // ── Resolve Market ─────────────────────────────────────────────────────────
     function resolveMarket(uint marketId, uint winningOutcome) public {
         Market storage m = markets[marketId];
         
@@ -128,14 +130,23 @@ contract PredictionMarket {
 
         m.resolved = true;
         m.winningOutcome = winningOutcome;
+
+        // ✅ FIX: Track losses for all players who bet on the losing outcome
+        address[] memory players = marketPlayers[marketId];
+        for (uint i = 0; i < players.length; i++) {
+            Prediction storage p = predictions[marketId][players[i]];
+            if (p.shares > 0 && p.outcome != winningOutcome) {
+                profiles[players[i]].totalLosses++;
+            }
+        }
         
-        // Move from active to resolved
         _removeFromActive(marketId);
         resolvedMarketIds.push(marketId);
         
         emit MarketResolved(marketId, winningOutcome);
     }
 
+    // ── Claim Reward ───────────────────────────────────────────────────────────
     function claimReward(uint marketId) public {
         Market storage m = markets[marketId];
         require(m.resolved, "Not resolved");
@@ -150,7 +161,6 @@ contract PredictionMarket {
 
         p.claimed = true;
         
-        // Update user profile
         profiles[msg.sender].totalWins++;
         profiles[msg.sender].totalEarnings += reward;
         
@@ -159,10 +169,10 @@ contract PredictionMarket {
         emit RewardClaimed(marketId, msg.sender, reward);
     }
 
-    // Helper to remove market from active list
+    // ── Internal Helper ────────────────────────────────────────────────────────
     function _removeFromActive(uint marketId) internal {
-        for(uint i = 0; i < activeMarketIds.length; i++){
-            if(activeMarketIds[i] == marketId){
+        for (uint i = 0; i < activeMarketIds.length; i++) {
+            if (activeMarketIds[i] == marketId) {
                 activeMarketIds[i] = activeMarketIds[activeMarketIds.length - 1];
                 activeMarketIds.pop();
                 break;
@@ -170,7 +180,7 @@ contract PredictionMarket {
         }
     }
 
-    // View functions
+    // ── View Functions ─────────────────────────────────────────────────────────
     function getActiveMarkets() public view returns (uint[] memory) {
         return activeMarketIds;
     }
@@ -195,12 +205,11 @@ contract PredictionMarket {
         return marketPlayers[marketId];
     }
 
-    // Get odds for a market
     function getOdds(uint marketId) public view returns (uint odds1, uint odds2) {
         Market storage m = markets[marketId];
         uint totalShares = m.totalShares1 + m.totalShares2;
         
-        if(totalShares == 0) {
+        if (totalShares == 0) {
             return (50, 50);
         }
         
@@ -208,3 +217,4 @@ contract PredictionMarket {
         odds2 = 100 - odds1;
     }
 }
+
